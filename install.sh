@@ -103,10 +103,10 @@ supported_distro( )
   fi
 
   case "${ID}" in
-    ubuntu|centos|rhel|fedora|sles|opensuse-leap)
+    ubuntu|centos|rhel|fedora|sles|opensuse-leap|azurelinux)
         true
         ;;
-    *)  printf "This script is currently supported on Ubuntu, CentOS, RHEL, SLES, OpenSUSE-Leap, and Fedora\n"
+    *)  printf "This script is currently supported on Ubuntu, CentOS, RHEL, SLES, OpenSUSE-Leap, Fedora, and Azure Linux\n"
         exit 2
         ;;
   esac
@@ -233,6 +233,7 @@ install_packages( )
   local library_dependencies_centos=( "epel-release" "make" "cmake3" "rpm-build" "wget" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build" "wget" )
   local library_dependencies_sles=( "make" "cmake" "rpm-build" "wget" )
+  local library_dependencies_azurelinux=( "make" "cmake" "rpm-build" "wget" )
 
   if [[ "${build_clients}" == true ]]; then
     # dependencies to build the clients
@@ -241,6 +242,7 @@ install_packages( )
     library_dependencies_centos+=( "gcc-gfortran" )
     library_dependencies_fedora+=( "gcc-gfortran" )
     library_dependencies_sles+=( "gcc-fortran" )
+    library_dependencies_azurelinux+=( "gcc-gfortran" )
   fi
 
   case "${ID}" in
@@ -264,8 +266,13 @@ install_packages( )
     sles|opensuse-leap)
       install_zypper_packages "${library_dependencies_sles[@]}"
       ;;
+
+    azurelinux)
+      install_dnf_packages "${library_dependencies_azurelinux[@]}"
+      ;;
+
     *)
-      echo "This script is currently supported on Ubuntu, CentOS, RHEL, SLES, OpenSUSE-Leap, and Fedora"
+      echo "This script is currently supported on Ubuntu, CentOS, RHEL, SLES, OpenSUSE-Leap, Fedora, and Azure Linux"
       exit 2
       ;;
   esac
@@ -639,6 +646,9 @@ if [[ "${build_package}" == true ]]; then
         ;;
       sles|opensuse-leap)
         elevate_if_not_root zypper -n --no-gpg-checks install rocsolver-*.rpm
+        ;;
+      azurelinux)
+        elevate_if_not_root rpm -ivh --replacefiles rocsolver-*.rpm
         ;;
     esac
   fi
